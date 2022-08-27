@@ -19,7 +19,6 @@ Explanation - The sub-array is  {-5, 8, -14, 2, 4}
 For all boundary conditions print -1 
 
   
-  
   import java.util.*;
 class Test1
 {

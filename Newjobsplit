@@ -7,9 +7,9 @@ import java.io.IOException;
 public class JobSplitter {
 
     private static final String JOB_START_REGEX = "^X\\w+#\\w+$"; 
-
+    
     public static void main(String[] args) {
-        String inputFile = ".txt"; 
+        String inputFile = "C:\\Users\\anilkumarb2\\Projects\\Qliksense\\hl_add_jobs.txt"; 
         String outputDir = "./split_jobs/"; 
 
         splitJobs(inputFile, outputDir);
@@ -32,8 +32,52 @@ public class JobSplitter {
 
             while ((line = reader.readLine()) != null) {
                 
-                String trimmedLine = line.trim();
+                String cleanedLine = cleanLine(line); 
 
+                if (cleanedLine.matches(JOB_START_REGEX)) {
+                    
+                    if (currentJobName != null) {
+                        writeJobFile(outputDir, currentJobName, currentJobContent.toString());
+                    }
+                    
+                    currentJobName = cleanedLine;
+                    currentJobContent = new StringBuilder();
+                    currentJobContent.append(cleanedLine).append(System.lineSeparator());
+                    
+                } 
+                else if (currentJobName != null) {
+                    currentJobContent.append(cleanedLine).append(System.lineSeparator());
+                }
+            }
+
+            if (currentJobName != null) {
+                writeJobFile(outputDir, currentJobName, currentJobContent.toString());
+            }
+
+            System.out.println("Job splitting complete! Files saved in " + outputDir);
+
+        } catch (IOException e) {
+            System.err.println("An error occurred during file processing: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static String cleanLine(String line) {
+        return line.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "");
+    }
+    
+    private static void writeJobFile(String outputDir, String jobName, String content) {
+        String safeJobName = jobName.replaceAll("[^a-zA-Z0-9.-]", "_"); 
+        String filePath = outputDir + safeJobName + ".txt";
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            writer.write(content.trim());
+            System.out.println("-> Wrote file: " + filePath);
+        } catch (IOException e) {
+            System.err.println("Error writing job file " + filePath + ": " + e.getMessage());
+        }
+    }
+}
                 if (trimmedLine.matches(JOB_START_REGEX)) {
                     
                     if (currentJobName != null) {

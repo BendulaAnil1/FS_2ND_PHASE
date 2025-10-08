@@ -1,0 +1,77 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class JobSplitter {
+
+    private static final String JOB_START_REGEX = "^X\\w+#\\w+$"; 
+
+    public static void main(String[] args) {
+        String inputFile = ".txt"; 
+        String outputDir = "./split_jobs/"; 
+
+        splitJobs(inputFile, outputDir);
+    }
+
+    public static void splitJobs(String inputFile, String outputDir) {
+        
+        java.io.File dir = new java.io.File(outputDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+            System.out.println("Created output directory: " + outputDir);
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
+            String line;
+            StringBuilder currentJobContent = new StringBuilder();
+            String currentJobName = null;
+            
+            System.out.println("Starting job split process...");
+
+            while ((line = reader.readLine()) != null) {
+                
+                String trimmedLine = line.trim();
+
+                if (trimmedLine.matches(JOB_START_REGEX)) {
+                    
+                    if (currentJobName != null) {
+                        writeJobFile(outputDir, currentJobName, currentJobContent.toString());
+                    }
+                    
+                    currentJobName = trimmedLine;
+                    currentJobContent = new StringBuilder();
+                    currentJobContent.append(line).append(System.lineSeparator());
+                    
+                } 
+                else if (currentJobName != null) {
+                    currentJobContent.append(line).append(System.lineSeparator());
+                }
+            }
+
+            if (currentJobName != null) {
+                writeJobFile(outputDir, currentJobName, currentJobContent.toString());
+            }
+
+            System.out.println("Job splitting complete! Files saved in " + outputDir);
+
+        } catch (IOException e) {
+            System.err.println("An error occurred during file processing: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void writeJobFile(String outputDir, String jobName, String content) {
+        // MODIFICATION: Use jobName directly without sanitization 
+        // NOTE: This may cause errors on Windows if the jobName contains illegal characters like #
+        String filePath = outputDir + jobName + ".txt"; 
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            writer.write(content.trim());
+            System.out.println("-> Wrote file: " + filePath);
+        } catch (IOException e) {
+            System.err.println("Error writing job file " + filePath + ": " + e.getMessage());
+        }
+    }
+}

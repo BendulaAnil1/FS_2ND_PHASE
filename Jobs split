@@ -1,0 +1,67 @@
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+
+public class SplitJobs {
+    public static void main(String[] args) {
+        // ✅ You can change this to your file path
+        String inputFile = "HL_add_jobs.txt";
+
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(inputFile));
+
+            String currentJobName = null;
+            BufferedWriter writer = null;
+
+            for (String line : lines) {
+                line = line.trim();
+
+                // When a new job line starts with 'X'
+                if (line.startsWith("X")) {
+                    // Close previous job file if open
+                    if (writer != null) {
+                        writer.close();
+                    }
+
+                    // Extract part after '#' for filename
+                    String[] parts = line.split("#");
+                    if (parts.length > 1) {
+                        currentJobName = parts[1].trim();
+                    } else {
+                        currentJobName = line;
+                    }
+
+                    // Create a new file in current folder (same as program)
+                    writer = new BufferedWriter(new FileWriter(currentJobName + ".txt"));
+
+                    // Optional header
+                    writer.write("# Job Context for " + currentJobName);
+                    writer.newLine();
+
+                    continue;
+                }
+
+                // Skip empty lines
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                // Write job details
+                if (writer != null) {
+                    writer.write(line);
+                    writer.newLine();
+                }
+            }
+
+            // Close last file if open
+            if (writer != null) {
+                writer.close();
+            }
+
+            System.out.println("✅ Job files created successfully in current folder.");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
